@@ -1,30 +1,37 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   getAuth,
   onAuthStateChanged,
+  updateProfile,
 } from "firebase/auth";
-// import { auth } from "./firebaseconfig";
-const auth = getAuth();
+import { auth } from "./firebaseconfig";
+
 const FirebaseAuthen = () => {
   const [values, setValues] = useState({
     email: "",
     password: "",
   });
   const [userInfo, setUserInfo] = useState("");
-  onAuthStateChanged(auth, (currentUser) => {
-    setUserInfo(currentUser);
-  });
+  useEffect(() => {
+    onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUserInfo(currentUser);
+      } else {
+        setUserInfo("");
+      }
+    });
+  }, []);
 
   const handelInputChange = (e) => {
     setValues({
       ...values,
       [e.target.name]: e.target.value,
+      // email: e.target.value,
     });
   };
-  //   console.log(values);
 
   const handleCreateUser = async (e) => {
     e.preventDefault();
@@ -46,7 +53,16 @@ const FirebaseAuthen = () => {
     //     console.log("error", errorCode + " " + errorMessage);
     //   });
 
-    await createUserWithEmailAndPassword(auth, values.email, values.password);
+    const user = await createUserWithEmailAndPassword(
+      auth,
+      values.email,
+      values.password
+    );
+    await updateProfile(auth.currentUser, {
+      displayName: "NonameTr",
+    });
+
+    console.log("success!!!!");
 
     console.log("create user successfully");
   };
@@ -80,8 +96,9 @@ const FirebaseAuthen = () => {
           SingUp
         </button>
       </form>
-      <div className="mt-10 flex items-center gap-x-5">
-        <span>{userInfo?.email}</span>
+      <div className="mt-10 ">
+        <div>{userInfo?.email}</div>
+        <div>{userInfo?.displayName}</div>
         <button
           className="p-3 bg-purple-500 text-white text-sm font-medium rounded-lg"
           onClick={handelSingout}
